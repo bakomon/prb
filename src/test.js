@@ -19,11 +19,12 @@ var { page, browser } = await connect({
 console.log("The browser is launched...");
 async function checkWaf() {
     console.log('WAF testing started');
-    await page.goto('https://nopecha.com/demo/cloudflare', {
+    const wafUrl = 'https://nopecha.com/demo/cloudflare';
+    await page.goto(wafUrl, {
         waitUntil: 'domcontentloaded'
     })
 
-    console.log('Navigated to page');
+    console.log('Navigated to page: ' + wafUrl);
     await page.waitForSelector('.link_row', {
         timeout: 60000
     })
@@ -42,18 +43,20 @@ async function checkWaf() {
 async function checkCaptcha() {
     console.log("Turnstile Captcha test has been initiated...");
 
-    page.goto("https://nopecha.com/captcha/turnstile", {
+    const captchaUrl = 'https://nopecha.com/captcha/turnstile';
+    page.goto(captchaUrl, {
         waitUntil: 'load'
     }).catch(err => { })
     await page.waitForSelector('a')
     await new Promise((resolve) => { setTimeout(() => { resolve() }, 500) })
-    console.log('Navigated to page');
+    console.log('Navigated to page: ' + captchaUrl);
     const token = await page.evaluate(() => {
         var cl = setTimeout(() => {
             resolve(false)
         }, 60000);
         return new Promise((resolve) => {
             const input = document.querySelector('input[name="cf-turnstile-response"]');
+            console.log(input);
             if (input) {
                 const observer = new MutationObserver((mutations) => {
                     var mutation = mutations.find((mutation) => { return mutation.type === 'attributes' && mutation.attributeName === 'value' });
@@ -71,17 +74,18 @@ async function checkCaptcha() {
         console.log("Failed to receive Turnstile Token. Transaction failed.");
     } else {
         dataset.success++
-        console.log("Turnstile Captcha test successful.\n\n" + token);
+        console.log('Turnstile Captcha test successful.\nToken:\n' + token + '\n\n');
     }
     return
 }
 
 async function recaptchav3() {
     console.log('Starting recaptcha-v3 test...');
-    page.goto('https://recaptcha-demo.appspot.com/recaptcha-v3-request-scores.php').catch(err => { })
+    const rv3Url = 'https://recaptcha-demo.appspot.com/recaptcha-v3-request-scores.php';
+    page.goto(rv3Url).catch(err => { })
     await page.waitForSelector('#recaptcha-steps')
     await new Promise((resolve) => { setTimeout(() => { resolve() }, 2000) })
-    console.log('Navigated to page');
+    console.log('Navigated to page: ' + rv3Url);
     const score = await page.evaluate(() => {
         return new Promise((resolve) => {
             var cl = setTimeout(() => {
@@ -124,6 +128,7 @@ await checkWaf()
 await checkCaptcha()
 await recaptchav3()
 
-console.log(`Test completed.\nSuccess: ${dataset.success}\nFailed: ${dataset.failed}`);
+console.log(`Test completed.\nSuccess: ${dataset.success}\nFailed: ${dataset.failed}\n`);
 
-await browser.close().catch(err => { })
+console.log("Close the browser...");
+await browser.close().catch(err => { console.error(err) })

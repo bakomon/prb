@@ -1,4 +1,4 @@
-import { startSession, closeSession } from './module/chromium.js'
+import { startSession } from './module/chromium.js'
 import { sleep } from './module/general.js'
 import { checkStat } from './module/turnstile.js'
 import { protectPage } from 'puppeteer-afp'
@@ -54,7 +54,7 @@ export const connect = ({
             targetFilter: (target) => targetFilter({ target: target, skipTarget: skipTarget }),
         }
         args.push('--no-sandbox', '--disable-setuid-sandbox', '--disable-blink-features=AutomationControlled', '--window-size=1920,1080');
-        const { browser, xvfbsession } = await startSession({
+        const { browser } = await startSession({
             args: args,
             headless: headless,
             customConfig: customConfig,
@@ -111,10 +111,6 @@ export const connect = ({
             //     message: 'Browser Disconnected',
             //     type: 'info'
             // })
-            try { setSolveStatus({ status: false }) } catch (err) { }
-            await closeSession({
-                xvfbsession: xvfbsession
-            }).catch(err => { console.log(err.message); })
         });
 
 
@@ -136,11 +132,6 @@ export const connect = ({
                 // console.log(err.message);
             }
 
-
-
-
-
-
             if (newPage && fingerprint === true) {
                 try {
                     handleNewPage({ page: newPage, config: fpconfig });
@@ -155,13 +146,7 @@ export const connect = ({
         resolve({
             browser: browser,
             page: page,
-            xvfbsession: xvfbsession,
             setTarget: setTarget
         })
     })
 }
-
-
-
-
-
